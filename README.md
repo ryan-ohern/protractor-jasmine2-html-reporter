@@ -131,6 +131,17 @@ This option, if false, will show only failures.
 
 Default is <code>true</code>
 
+### reportPassedTest (optional)
+
+This option, if false, will not generate a report if the test passes. 
+
+<pre><code>jasmine.getEnv().addReporter(new Jasmine2HtmlReporter({
+   ....
+   reportPassedTest: false
+}));</code></pre>
+
+Default is <code>true</code>
+
 ### fileName (optional)
 
 This will be the name used for the html file generated thanks to this tool.
