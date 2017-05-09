@@ -105,6 +105,7 @@ function Jasmine2HTMLReporter(options) {
     self.fileName = options.fileName === UNDEFINED ? 'htmlReport' : options.fileName;
     self.cleanDestination = options.cleanDestination === UNDEFINED ? true : options.cleanDestination;
     self.showPassed = options.showPassed === UNDEFINED ? true : options.showPassed;
+    self.reportPassedTest = options.reportPassedTest === UNDEFINED ? true : options.reportPassedTest;
 
     var suites = [],
         currentSuite = null,
@@ -235,11 +236,15 @@ function Jasmine2HTMLReporter(options) {
         }
 
         var output = '';
+        var testFailed = false;
         for (var i = 0; i < suites.length; i++) {
             output += self.getOrWriteNestedOutput(suites[i]);
+            if (suites[i]._failures > 0) {
+                testFailed = true;
+            }
         }
         // if we have anything to write here, write out the consolidated file
-        if (output) {
+        if ((output && self.reportPassedTest) || (output && !self.reportPassedTest && testFailed)) {
             wrapOutputAndWriteFile(getReportFilename(), output);
         }
         //log("Specs skipped but not reported (entire suite skipped or targeted to specific specs)", totalSpecsDefined - totalSpecsExecuted + totalSpecsDisabled);
