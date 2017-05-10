@@ -106,6 +106,7 @@ function Jasmine2HTMLReporter(options) {
     self.cleanDestination = options.cleanDestination === UNDEFINED ? true : options.cleanDestination;
     self.showPassed = options.showPassed === UNDEFINED ? true : options.showPassed;
     self.reportPassedTest = options.reportPassedTest === UNDEFINED ? true : options.reportPassedTest;
+    self.takeScreenshotsOnExpectFailures = options.takeScreenshotsOnExpectFailures === UNDEFINED ? false : options.takeScreenshotsOnExpectFailures;
 
     var suites = [],
         currentSuite = null,
@@ -156,7 +157,33 @@ function Jasmine2HTMLReporter(options) {
         //Delete previous reports unless cleanDirectory is false
         if (self.cleanDestination)
             rmdir(self.savePath);
+        
+        if (self.takeScreenshotsOnExpectFailures) {
 
+            var originalAddExpectationResult = jasmine.Spec.prototype.addExpectationResult;
+            jasmine.Spec.prototype.addExpectationResult = function () {
+                if (!arguments[0]) {
+                    var failScreenshot = 'FAIL--' + sanitizeFilename(self.currentSpec.fullName) + '--' + sanitizeFilename(arguments[1].message) + '--' + hat() + '.png';
+                    browser.takeScreenshot().then(function (png) {
+                        var screenshotPath = path.join(
+                            self.savePath,
+                            self.screenshotsFolder,
+                            failScreenshot
+                        );
+
+                        mkdirp(path.dirname(screenshotPath), function (err) {
+                            if (err) {
+                                throw new Error('Could not create directory for ' + screenshotPath);
+                            }
+                            writeScreenshot(png, screenshotPath);
+                        });
+                    });
+                    self.currentSpec.screenshots.push(failScreenshot);
+                }
+                return originalAddExpectationResult.apply(this, arguments);
+            };
+
+        }
     };
     self.suiteStarted = function(suite) {
         suite = getSuite(suite);
@@ -183,6 +210,9 @@ function Jasmine2HTMLReporter(options) {
         spec._startTime = new Date();
         spec._suite = currentSuite;
         currentSuite._specs.push(spec);
+        
+        self.currentSpec = spec;
+        self.currentSpec.screenshots = [];
     };
 
     self.specDone = function(spec) {
@@ -197,9 +227,9 @@ function Jasmine2HTMLReporter(options) {
         if ((self.takeScreenshots && !self.takeScreenshotsOnlyOnFailures) ||
             (self.takeScreenshots && self.takeScreenshotsOnlyOnFailures && isFailed(spec))) {
             if (!self.fixedScreenshotName)
-                spec.screenshot = hat() + '.png';
+                spec.screenshot = 'SpecDone--' + hat() + '.png';
             else
-                spec.screenshot = sanitizeFilename(spec.description) + '.png';
+                spec.screenshot = 'SpecDone--' + sanitizeFilename(spec.description) + '.png';
 
             browser.takeScreenshot().then(function (png) {
                 var screenshotPath = path.join(
@@ -215,6 +245,8 @@ function Jasmine2HTMLReporter(options) {
                     writeScreenshot(png, screenshotPath);
                 });
             });
+            
+            spec.screenshots.push(spec.screenshot);
         }
 
 
@@ -324,10 +356,12 @@ function Jasmine2HTMLReporter(options) {
             html += '<div class="spec">';
             html += specAsHtml(spec);
                 html += '<div class="resume">';
-                if (spec.screenshot !== UNDEFINED){
-                    html += '<a href="' + self.screenshotsFolder + spec.screenshot + '">';
-                    html += '<img src="' + self.screenshotsFolder + spec.screenshot + '" width="100" height="100" />';
-                    html += '</a>';
+                if (spec.screenshots.length > 0) {
+                    for (var j = 0; j < spec.screenshots.length; j++) {
+                        html += '<a href="' + self.screenshotsFolder + spec.screenshots[j] + '">';
+                        html += '<img src="' + self.screenshotsFolder + spec.screenshots[j] + '" width="137" height="63" />';
+                        html += '</a>&nbsp';
+                    }
                 }
                 html += '<br />';
                 var num_tests= spec.failedExpectations.length + spec.passedExpectations.length;
