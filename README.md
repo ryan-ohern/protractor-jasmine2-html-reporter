@@ -74,6 +74,16 @@ If you disable screenshots, obviously this option will not be taken into account
 
 Default is <code>false</code> (So screenshots are always generated)
 
+### Take screenshots on except failures (optional) - (NEW)
+
+This option allows you to create screenshots on failures of specific expect statements.
+
+<pre><code>jasmine.getEnv().addReporter(new Jasmine2HtmlReporter({
+   takeScreenshotsOnExpectFailures: true
+}));</code></pre>
+
+Default is <code>false</code> (So screenshots are always generated)
+
 
 ### FixedScreenshotName (optional)
 
