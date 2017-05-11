@@ -108,6 +108,26 @@ Filename for html report.
 
 Default is <code>nothing</code>
 
+### specDoneScreenshotPrefix (optional)
+
+Add a prefix to the filename for spec done screenshots.
+
+<pre><code>jasmine.getEnv().addReporter(new Jasmine2HtmlReporter({
+   specDoneScreenshotPrefix: 'SpecDone--'
+}));</code></pre>
+
+Default is <code>''</code>
+
+### expectFailedScreenshotPrefix (optional)
+
+Add a prefix to the filename for expect failed screenshots.
+
+<pre><code>jasmine.getEnv().addReporter(new Jasmine2HtmlReporter({
+   expectFailedScreenshotPrefix: 'FAIL--'
+}));</code></pre>
+
+Default is <code>''</code>
+
 ### Consolidate and ConsolidateAll (optional)
 
 This option allow you to create a single file for each reporter.
