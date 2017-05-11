@@ -107,7 +107,9 @@ function Jasmine2HTMLReporter(options) {
     self.showPassed = options.showPassed === UNDEFINED ? true : options.showPassed;
     self.reportPassedTest = options.reportPassedTest === UNDEFINED ? true : options.reportPassedTest;
     self.takeScreenshotsOnExpectFailures = options.takeScreenshotsOnExpectFailures === UNDEFINED ? false : options.takeScreenshotsOnExpectFailures;
-
+    self.specDoneScreenshotPrefix = options.specDoneScreenshotPrefix === UNDEFINED ? '' : options.specDoneScreenshotPrefix;
+    self.expectFailedScreenshotPrefix = options.expectFailedScreenshotPrefix === UNDEFINED ? '' : options.expectFailedScreenshotPrefix;
+    
     var suites = [],
         currentSuite = null,
         totalSpecsExecuted = 0,
@@ -163,7 +165,7 @@ function Jasmine2HTMLReporter(options) {
             var originalAddExpectationResult = jasmine.Spec.prototype.addExpectationResult;
             jasmine.Spec.prototype.addExpectationResult = function () {
                 if (!arguments[0]) {
-                    var failScreenshot = 'FAIL--' + sanitizeFilename(self.currentSpec.fullName) + '--' + sanitizeFilename(arguments[1].message) + '--' + hat() + '.png';
+                    var failScreenshot = self.expectFailedScreenshotPrefix + sanitizeFilename(self.currentSpec.fullName) + '--' + sanitizeFilename(arguments[1].message) + '--' + hat() + '.png';
                     browser.takeScreenshot().then(function (png) {
                         var screenshotPath = path.join(
                             self.savePath,
@@ -227,9 +229,9 @@ function Jasmine2HTMLReporter(options) {
         if ((self.takeScreenshots && !self.takeScreenshotsOnlyOnFailures) ||
             (self.takeScreenshots && self.takeScreenshotsOnlyOnFailures && isFailed(spec))) {
             if (!self.fixedScreenshotName)
-                spec.screenshot = 'SpecDone--' + hat() + '.png';
+                spec.screenshot = self.specDoneScreenshotPrefix + hat() + '.png';
             else
-                spec.screenshot = 'SpecDone--' + sanitizeFilename(spec.description) + '.png';
+                spec.screenshot = self.specDoneScreenshotPrefix + sanitizeFilename(spec.description) + '.png';
 
             browser.takeScreenshot().then(function (png) {
                 var screenshotPath = path.join(
